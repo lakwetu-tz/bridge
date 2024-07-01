@@ -154,29 +154,21 @@ export const BarChart: React.FC = () => {
     const [series, setSeries] = useState([
         {
             name: 'Vibration',
-            data: [10, 41, 35, 51, 49, 62, 69, 91, 148, 120, 95, 80]
-        },
-        {
-            name: 'Temperature',
-            data: [25, 30, 28, 32, 29, 27, 26, 31, 30, 27, 26, 29]
-        },
-        {
-            name: 'Humidity',
-            data: [60, 65, 62, 66, 64, 63, 61, 65, 62, 63, 60, 59]
-        },
-        {
-            name: 'Pressure',
-            data: [1010, 1012, 1013, 1009, 1011, 1008, 1007, 1010, 1009, 1012, 1011, 1010]
+            data: []
         },
         {
             name: 'Weight',
-            data: [50, 55, 52, 56, 54, 53, 51, 55, 52, 53, 50, 49]
+            data: []
         }
     ]);
 
     const options: ApexOptions = {
         chart: {
             type: 'bar',
+            stacked: true,
+            toolbar: {
+                show: false
+            },
             animations: {
                 enabled: true,
                 easing: 'linear',
@@ -185,19 +177,29 @@ export const BarChart: React.FC = () => {
                 }
             }
         },
-        colors: ['#28a745', '#007bff', '#ffc107', '#dc3545', '#6c757d'],
+        plotOptions: {
+            bar: {
+                horizontal: true,
+                barHeight: '80%'
+            }
+        },
+        colors: ['#28a745', '#007bff'],
         xaxis: {
-            type: 'datetime',
-            categories: [
-                '2023-06-01T00:00:00Z', '2023-06-02T00:00:00Z', '2023-06-03T00:00:00Z',
-                '2023-06-04T00:00:00Z', '2023-06-05T00:00:00Z', '2023-06-06T00:00:00Z',
-                '2023-06-07T00:00:00Z', '2023-06-08T00:00:00Z', '2023-06-09T00:00:00Z',
-                '2023-06-10T00:00:00Z', '2023-06-11T00:00:00Z', '2023-06-12T00:00:00Z'
-            ]
+            type: 'numeric',
+            labels: {
+                formatter: function (val) {
+                    return new Date(val).toLocaleTimeString();
+                }
+            }
+        },
+        dataLabels: {
+            enabled: false
         },
         tooltip: {
-            x: {
-                format: 'dd MMM yyyy'
+            y: {
+                formatter: function (val) {
+                    return val.toFixed(2);
+                }
             }
         }
     };
@@ -205,28 +207,23 @@ export const BarChart: React.FC = () => {
     useEffect(() => {
         // Simulate real-time data update
         const interval = setInterval(() => {
-            setSeries(prevSeries => [
-                {
-                    ...prevSeries[0],
-                    data: prevSeries[0].data.map(value => value + Math.random() * 10 - 5)
-                },
-                {
-                    ...prevSeries[1],
-                    data: prevSeries[1].data.map(value => value + Math.random() * 2 - 1)
-                },
-                {
-                    ...prevSeries[2],
-                    data: prevSeries[2].data.map(value => value + Math.random() * 3 - 1.5)
-                },
-                {
-                    ...prevSeries[3],
-                    data: prevSeries[3].data.map(value => value + Math.random() * 5 - 2.5)
-                },
-                {
-                    ...prevSeries[4],
-                    data: prevSeries[4].data.map(value => value + Math.random() * 3 - 1)
-                }
-            ]);
+            const now = Date.now();
+
+            // update series in real-time
+            
+            // Keep only the last 10 data points
+            if (series[0].data.length > 10) {
+                setSeries(prevSeries => [
+                    {
+                        ...prevSeries[0],
+                        data: prevSeries[0].data.slice(-10)
+                    },
+                    {
+                        ...prevSeries[1],
+                        data: prevSeries[1].data.slice(-10)
+                    }
+                ]);
+            }
         }, 2000);
 
         return () => clearInterval(interval);
@@ -234,14 +231,11 @@ export const BarChart: React.FC = () => {
 
     return (
         <div className="bg-white p-4 rounded shadow h-full">
-            <h2 className="text-xl font-bold mb-4">Vibration, Temperature, Humidity, Pressure, Weight Over Time</h2>
+            <h2 className="text-xl font-bold mb-4">Vibration vs Weight Over Time</h2>
             <ReactApexChart options={options} series={series} type="bar" height={300} />
         </div>
     );
 };
-
-
-
 
 export const BarChart2: React.FC = () => {
     const [series, setSeries] = useState([
