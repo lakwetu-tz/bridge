@@ -116,7 +116,6 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null);
-    const [ isLogin, setIsLogin ] = useState<boolean>(false)
 
     useEffect(() => {
         // Check localStorage for existing user session

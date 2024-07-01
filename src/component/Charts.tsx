@@ -149,9 +149,13 @@ export const AreaChart: React.FC = () => {
 };
 
 
+interface SeriesData {
+    name: string;
+    data: { x: number; y: number; }[];
+}
 
 export const BarChart: React.FC = () => {
-    const [series, setSeries] = useState([
+    const [series, setSeries] = useState<SeriesData[]>([
         {
             name: 'Vibration',
             data: []
@@ -209,29 +213,30 @@ export const BarChart: React.FC = () => {
         const interval = setInterval(() => {
             const now = Date.now();
 
-            // update series in real-time
-            
-            // Keep only the last 10 data points
-            if (series[0].data.length > 10) {
-                setSeries(prevSeries => [
-                    {
-                        ...prevSeries[0],
-                        data: prevSeries[0].data.slice(-10)
-                    },
-                    {
-                        ...prevSeries[1],
-                        data: prevSeries[1].data.slice(-10)
-                    }
-                ]);
-            }
-        }, 2000);
+            setSeries(prevSeries => [
+                {
+                    ...prevSeries[0],
+                    data: [...prevSeries[0].data.slice(-10), {
+                        x: now,
+                        y: Math.random() * 1000
+                    }]
+                },
+                {
+                    ...prevSeries[1],
+                    data: [...prevSeries[1].data.slice(-10), {
+                        x: now,
+                        y: Math.random() * 2000
+                    }]
+                }
+            ]);
+        }, 10000);
 
         return () => clearInterval(interval);
     }, []);
 
     return (
         <div className="bg-white p-4 rounded shadow h-full">
-            <h2 className="text-xl font-bold mb-4">Vibration vs Weight Over Time</h2>
+            <h2 className="text-xl font-bold mb-4">Horizontal Bar Chart: Vibration vs Weight Over Time</h2>
             <ReactApexChart options={options} series={series} type="bar" height={300} />
         </div>
     );
