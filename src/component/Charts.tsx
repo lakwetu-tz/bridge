@@ -4,13 +4,96 @@ import { ApexOptions } from 'apexcharts';
 import React, { useEffect, useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 
+import io from 'socket.io-client';
+
+const socket = io('http://127.0.0.1:5050'); 
+
 // src/components/LineChart.tsx
 
+interface SeriesDataPoint {
+    x: number;
+    y: number;
+}
+
+interface Series {
+    name: string;
+    data: SeriesDataPoint[];
+}
+
+// Define the LineChart component
 export const LineChart: React.FC = () => {
-    const [series, setSeries] = useState([
+    // State to store the series data
+    const [series, setSeries] = useState<Series[]>([
         {
             name: 'Vibration',
-            data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
+            data: []
+        }
+    ]);
+
+    // Define chart options
+    const options: ApexOptions = {
+        chart: {
+            type: 'line',
+            animations: {
+                enabled: true,
+                easing: 'linear',
+                dynamicAnimation: {
+                    speed: 1000
+                }
+            }
+        },
+        colors: ['#007bff'],  // Set the line color to blue
+        stroke: {
+            curve: 'smooth'
+        },
+        xaxis: {
+            type: 'datetime',
+            range: 5 * 60 * 1000  // Display only the last 5 minutes of data
+        },
+        tooltip: {
+            x: {
+                format: 'HH:mm:ss'
+            }
+        }
+    };
+
+    // Handle incoming data logs
+    useEffect(() => {
+        socket.on('data-logs', (data) => {
+            setSeries((prevSeries) => {
+                const newSeries = [...prevSeries];
+                const newData = { x: new Date(data.createdAt).getTime(), y: parseFloat(data.vib) };
+
+                // Append the new data point
+                newSeries[0].data.push(newData);
+
+                // Filter data to only include the last 5 minutes
+                const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+                newSeries[0].data = newSeries[0].data.filter(point => point.x >= fiveMinutesAgo);
+
+                return newSeries;
+            });
+        });
+
+        // Cleanup on component unmount
+        return () => {
+            socket.off('data-logs');
+        };
+    }, []);
+
+    return (
+        <div className="bg-white p-4 rounded shadow h-full">
+            <h2 className="text-xl font-bold mb-4">Vibration</h2>
+            <ReactApexChart options={options} series={series} type="line" height={300} />
+        </div>
+    );
+};
+
+export const LineChart1: React.FC = () => {
+    const [series, setSeries] = useState<Series[]>([
+        {
+            name: 'Weight',
+            data: []
         }
     ]);
 
@@ -25,70 +108,54 @@ export const LineChart: React.FC = () => {
                 }
             }
         },
-        colors: ['#28a745'],
+        colors: ['#007bff'],
         stroke: {
             curve: 'smooth'
         },
         xaxis: {
-            type: 'datetime',
-            categories: [
-                '2023-06-01T00:00:00Z',
-                '2023-06-02T00:00:00Z',
-                '2023-06-03T00:00:00Z',
-                '2023-06-04T00:00:00Z',
-                '2023-06-05T00:00:00Z',
-                '2023-06-06T00:00:00Z',
-                '2023-06-07T00:00:00Z',
-                '2023-06-08T00:00:00Z',
-                '2023-06-09T00:00:00Z'
-            ]
+            type: 'datetime'
         },
         tooltip: {
             x: {
-                format: 'dd MMM yyyy'
+                format: 'HH:mm:ss'
             }
         }
     };
 
     useEffect(() => {
-        // Simulate real-time data update
-        const interval = setInterval(() => {
-            setSeries([
+        socket.on('data-logs', (data) => {
+            setSeries((prevSeries) => [
                 {
-                    name: 'Vibration',
-                    data: series[0].data.map((value) => value + Math.random() * 10 - 5)
+                    ...prevSeries[0],
+                    data: [...prevSeries[0].data, { x: new Date(data.createdAt).getTime(), y: parseFloat(data.wgt) }]
                 }
             ]);
-        }, 2000);
+        });
 
-        return () => clearInterval(interval);
-    }, [series]);
+        return () => {
+            socket.off('data-logs');
+        };
+    }, []);
 
     return (
         <div className="bg-white p-4 rounded shadow h-full">
-            <h2 className="text-xl font-bold mb-4">Vibration Over Time</h2>
+            <h2 className="text-xl font-bold mb-4">Weight</h2>
             <ReactApexChart options={options} series={series} type="line" height={300} />
         </div>
     );
 };
 
-
-
-export const AreaChart: React.FC = () => {
-    const [series, setSeries] = useState([
+export const LineChart2: React.FC = () => {
+    const [series, setSeries] = useState<Series[]>([
         {
-            name: 'Vibration',
-            data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
-        },
-        {
-            name: 'Weight',
-            data: [50, 55, 52, 56, 54, 53, 51, 55, 52]
+            name: 'Temperature',
+            data: []
         }
     ]);
 
     const options: ApexOptions = {
         chart: {
-            type: 'area',
+            type: 'line',
             animations: {
                 enabled: true,
                 easing: 'linear',
@@ -97,56 +164,117 @@ export const AreaChart: React.FC = () => {
                 }
             }
         },
-        colors: ['#28a745', '#dc3545'],
+        colors: ['#dc3545'],
         stroke: {
             curve: 'smooth'
         },
         xaxis: {
-            type: 'datetime',
-            categories: [
-                '2023-06-01T00:00:00Z',
-                '2023-06-02T00:00:00Z',
-                '2023-06-03T00:00:00Z',
-                '2023-06-04T00:00:00Z',
-                '2023-06-05T00:00:00Z',
-                '2023-06-06T00:00:00Z',
-                '2023-06-07T00:00:00Z',
-                '2023-06-08T00:00:00Z',
-                '2023-06-09T00:00:00Z'
-            ]
+            type: 'datetime'
         },
         tooltip: {
             x: {
-                format: 'dd MMM yyyy'
+                format: 'HH:mm:ss'
             }
         }
     };
 
     useEffect(() => {
-        // Simulate real-time data update
-        const interval = setInterval(() => {
-            setSeries(prevSeries => [
+        socket.on('data-logs', (data) => {
+            setSeries((prevSeries) => [
                 {
                     ...prevSeries[0],
-                    data: prevSeries[0].data.map(value => value + Math.random() * 10 - 5)
-                },
-                {
-                    ...prevSeries[1],
-                    data: prevSeries[1].data.map(value => value + Math.random() * 3 - 1.5)
+                    data: [...prevSeries[0].data, { x: new Date(data.createdAt).getTime(), y: parseFloat(data.temp) }]
                 }
             ]);
-        }, 2000);
+        });
 
-        return () => clearInterval(interval);
+        return () => {
+            socket.off('data-logs');
+        };
     }, []);
 
     return (
         <div className="bg-white p-4 rounded shadow h-full">
-            <h2 className="text-xl font-bold mb-4">Vibration by Weight </h2>
-            <ReactApexChart options={options} series={series} type="area" height={300} />
+            <h2 className="text-xl font-bold mb-4">Temperature</h2>
+            <ReactApexChart options={options} series={series} type="line" height={300} />
         </div>
     );
 };
+
+
+// export const AreaChart: React.FC = () => {
+//     const [series, setSeries] = useState([
+//         {
+//             name: 'Vibration',
+//             data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
+//         },
+//         {
+//             name: 'Weight',
+//             data: [50, 55, 52, 56, 54, 53, 51, 55, 52]
+//         }
+//     ]);
+
+//     const options: ApexOptions = {
+//         chart: {
+//             type: 'area',
+//             animations: {
+//                 enabled: true,
+//                 easing: 'linear',
+//                 dynamicAnimation: {
+//                     speed: 1000
+//                 }
+//             }
+//         },
+//         colors: ['#28a745', '#dc3545'],
+//         stroke: {
+//             curve: 'smooth'
+//         },
+//         xaxis: {
+//             type: 'datetime',
+//             categories: [
+//                 '2023-06-01T00:00:00Z',
+//                 '2023-06-02T00:00:00Z',
+//                 '2023-06-03T00:00:00Z',
+//                 '2023-06-04T00:00:00Z',
+//                 '2023-06-05T00:00:00Z',
+//                 '2023-06-06T00:00:00Z',
+//                 '2023-06-07T00:00:00Z',
+//                 '2023-06-08T00:00:00Z',
+//                 '2023-06-09T00:00:00Z'
+//             ]
+//         },
+//         tooltip: {
+//             x: {
+//                 format: 'dd MMM yyyy'
+//             }
+//         }
+//     };
+
+//     useEffect(() => {
+//         // Simulate real-time data update
+//         const interval = setInterval(() => {
+//             setSeries(prevSeries => [
+//                 {
+//                     ...prevSeries[0],
+//                     data: prevSeries[0].data.map(value => value + Math.random() * 10 - 5)
+//                 },
+//                 {
+//                     ...prevSeries[1],
+//                     data: prevSeries[1].data.map(value => value + Math.random() * 3 - 1.5)
+//                 }
+//             ]);
+//         }, 2000);
+
+//         return () => clearInterval(interval);
+//     }, []);
+
+//     return (
+//         <div className="bg-white p-4 rounded shadow h-full">
+//             <h2 className="text-xl font-bold mb-4">Bridge Vibration over Time </h2>
+//             <ReactApexChart options={options} series={series} type="area" height={300} />
+//         </div>
+//     );
+// };
 
 
 interface SeriesData {
@@ -236,7 +364,7 @@ export const BarChart: React.FC = () => {
 
     return (
         <div className="bg-white p-4 rounded shadow h-full">
-            <h2 className="text-xl font-bold mb-4">Horizontal Bar Chart: Vibration vs Weight Over Time</h2>
+            <h2 className="text-xl font-bold mb-4">Vibration over Weight</h2>
             <ReactApexChart options={options} series={series} type="bar" height={300} />
         </div>
     );
@@ -315,7 +443,7 @@ export const BarChart2: React.FC = () => {
 
     return (
         <div className="bg-white p-4 rounded shadow h-full">
-            <h2 className="text-xl font-bold mb-4"> Vibration, Temperature & Weight Over Time</h2>
+            <h2 className="text-xl font-bold mb-4"> Vibration over Temperature</h2>
             <ReactApexChart options={options} series={series} type="bar" height={300} />
         </div>
     );
