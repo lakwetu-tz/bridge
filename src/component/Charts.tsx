@@ -64,11 +64,18 @@ export const LineChart: React.FC = () => {
             curve: 'smooth'
         },
         xaxis: {
-            type: 'datetime'
+            type: 'datetime',
+            labels: {
+                formatter: function (val) {
+                    return new Date(val).toLocaleTimeString();
+                }
+            }
         },
+
+        
         tooltip: {
             x: {
-                format: 'HH:mm:ss'
+                format: 'HH:mm'
             }
         }
     };
@@ -99,7 +106,12 @@ export const LineChart1: React.FC = () => {
             curve: 'smooth'
         },
         xaxis: {
-            type: 'datetime'
+            type: 'datetime',
+            labels: {
+                formatter: function (val) {
+                    return new Date(val).toLocaleTimeString();
+                }
+            }
         },
         tooltip: {
             x: {
@@ -134,11 +146,16 @@ export const LineChart2: React.FC = () => {
             curve: 'smooth'
         },
         xaxis: {
-            type: 'datetime'
+            type: 'datetime',
+            labels: {
+                formatter: function (val) {
+                    return new Date(val).toLocaleTimeString();
+                }
+            }
         },
         tooltip: {
             x: {
-                format: 'HH:mm:ss'
+                format: 'HH:mm'
             }
         }
     };
@@ -283,7 +300,7 @@ export const BarChart2: React.FC = () => {
         },
         tooltip: {
             x: {
-                format: 'HH:mm:ss'
+                format: 'HH'
             }
         }
     };
